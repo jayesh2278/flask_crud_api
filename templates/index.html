@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Records</title>
+</head>
+<body>
+    <h1>Student Records</h1>
+    <form>
+        <input type="text" placeholder="Enter Roll Number" id="rollNo">
+        <input type="text" placeholder="Enter Name" id="name">
+        <button type="button" onclick="addStudent()">Add Student</button>
+    </form>
+    <br>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Roll Number</th>
+                <th>Name</th>
+                <th>Edit</th>
+                <th>Delete</th>
+                
+            </tr>
+        </thead>
+        
+        <tbody id="studentList">
+
+        </tbody>
+    </table>
+
+    <script>
+        function getStudents() {
+            fetch('http://127.0.0.1:5000/students')
+            .then(response => response.json())
+            .then(data => {
+                let rows = '';
+                data.students.forEach(student => {
+                    rows += `<tr>
+                                <td>${student.id}</td>
+                                <td>${student.roll_number}</td>
+                                <td>${student.name}</td>
+                                <td><button type="button" onclick="editStudent(${student.id})">Edit</button></td>
+                                <td><button type="button" onclick="deleteStudent(${student.id})">Delete</button></td>
+                                
+
+                            </tr>`
+                });
+                document.getElementById('studentList').innerHTML = rows;
+            });
+        }
+
+        function addStudent() {
+            const rollNo = document.getElementById('rollNo').value;
+            const name = document.getElementById('name').value;
+
+            fetch('http://127.0.0.1:5000/students', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ roll_number: rollNo, name: name })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                document.getElementById('rollNo').value = '';
+                document.getElementById('name').value = '';
+                getStudents();
+            });
+        }
+
+        function editStudent(id) {
+            const rollNo = prompt('Enter Roll Number:');
+            const name = prompt('Enter Name:');
+
+            fetch(`http://127.0.0.1:5000/students/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ roll_number: rollNo, name: name })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                getStudents();
+            });
+        }
+
+        function deleteStudent(id) {
+            if (confirm('Are you sure you want to delete this student?')) {
+                fetch(`http://127.0.0.1:5000/students/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    getStudents();
+                });
+            }
+        }
+
+
+
+
+        getStudents();
+    </script>
+</body>
+</html>
